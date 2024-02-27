@@ -1,0 +1,24 @@
+version: "3"
+
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: example-api-express-prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    network_mode: "host"
+
+  grafana:
+    image: grafana/grafana
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/ds.yaml
+    ports:
+      - "3000:3000"
+    network_mode: "host"
+

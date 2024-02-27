@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { Request, Response, NextFunction } from "express";
 import pino from "pino";
 import { ENV } from "./env";
+import onFinished from "on-finished";
 
 const logger = pino({
   formatters: {
@@ -31,7 +32,7 @@ export function addLogger(req: Request, _res: Response, next: NextFunction) {
 export function logHttp(req: Request, res: Response, next: NextFunction) {
   const startedAt = process.hrtime();
 
-  res.on("finish", () => {
+  onFinished(res, () => {
     const elapsed = process.hrtime(startedAt);
     const elapsedMs = (elapsed[0] * 1e3 + elapsed[1] * 1e-6).toFixed(2);
     req.log.info(

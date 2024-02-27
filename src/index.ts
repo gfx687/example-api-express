@@ -6,6 +6,7 @@ import {
   problem500,
 } from "./problem-details";
 import logger, { addLogger, logHttp } from "./logger";
+import { getMetricsMiddleware } from "./metrics";
 
 const PORT = 3001;
 const app = express();
@@ -15,6 +16,8 @@ app.use(logHttp);
 app.use(express.json());
 
 configureProblemDetails(app);
+
+app.use(getMetricsMiddleware());
 
 app.use("/api/bugs", bugsRouter);
 

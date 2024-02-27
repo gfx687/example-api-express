@@ -1,14 +1,19 @@
 import express from "express";
-import { validateRequestBody } from "../helpers";
+import { resolveWithDelay, validateRequestBody } from "../helpers";
 import * as bugsDao from "../models/bugs-dao";
 import { bugUpdateSchema, newBugSchema } from "../models/bugs-types";
 import { problem404 } from "../problem-details";
 
 const router = express.Router();
 
-router.get("", (req, res) => {
-  const bugs = bugsDao.getAll();
-  req.log.info(`Found and returning ${bugs.length} bugs.`);
+router.get("", async (_, res) => {
+  const bugs = await resolveWithDelay(bugsDao.getAll, 200, 700);
+
+  if (8 < Math.floor(Math.random() * 10)) {
+    res.sendProblem(problem404("whatever you were looking for was not found"));
+    return;
+  }
+
   res.json(bugs);
 });
 
