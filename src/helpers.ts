@@ -1,16 +1,38 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, RequestHandler } from "express";
 import { ParamsDictionary, Query } from "express-serve-static-core";
-import { ZodSchema } from "zod";
-
+import z from "zod";
 import { problemValidation } from "./problem-details";
 
-export function validateRequestBody<TBody>(schema: ZodSchema<TBody>) {
-  return function (
-    req: Request<ParamsDictionary, any, TBody, Query>,
-    res: Response,
-    next: NextFunction
-  ) {
+export const zodStringToBoolSchema = z
+  .string()
+  .toLowerCase()
+  .transform((x) => x === "true" || x === "1");
+
+export function validateRequestBody<TBody>(
+  schema: z.ZodSchema<TBody>
+): RequestHandler<ParamsDictionary, any, TBody, Query> {
+  return (req, res, next) => {
     const parseResult = schema.safeParse(req.body);
+    if (parseResult.success) {
+      return next();
+    }
+
+    res.sendProblem(
+      problemValidation(
+        parseResult.error.errors.map((x) => ({
+          detail: x.message,
+          pointer: x.path[0].toString(),
+        }))
+      )
+    );
+  };
+}
+
+export function validateRequestQuery<TQuery>(
+  schema: z.ZodSchema<TQuery, any, Query>
+): RequestHandler<ParamsDictionary, any, any, TQuery> {
+  return (req, res, next) => {
+    const parseResult = schema.safeParse(req.query);
     if (parseResult.success) {
       return next();
     }

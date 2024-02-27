@@ -6,9 +6,9 @@ import {
   problem500,
 } from "./problem-details";
 import logger, { addLogger, logHttp } from "./logger";
-import { getMetricsMiddleware } from "./metrics";
+import { exceptionsCounter, getMetricsMiddleware } from "./metrics";
+import { ENV } from "./env";
 
-const PORT = 3001;
 const app = express();
 
 app.use(addLogger);
@@ -32,9 +32,10 @@ app.use((err: Error, req: Request, res: Response, _: NextFunction) => {
     logger.error(err);
   }
 
+  exceptionsCounter.inc();
   res.sendProblem(problem500);
 });
 
-app.listen(PORT, () => {
-  logger.info(`Started. Listening on port ${PORT}`);
+app.listen(ENV.PORT, () => {
+  logger.info(`Started. Listening on port ${ENV.PORT}`);
 });

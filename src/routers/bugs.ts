@@ -1,21 +1,45 @@
 import express from "express";
-import { resolveWithDelay, validateRequestBody } from "../helpers";
+import {
+  resolveWithDelay,
+  validateRequestBody,
+  validateRequestQuery,
+  zodStringToBoolSchema,
+} from "../helpers";
 import * as bugsDao from "../models/bugs-dao";
 import { bugUpdateSchema, newBugSchema } from "../models/bugs-types";
 import { problem404 } from "../problem-details";
+import { z } from "zod";
 
 const router = express.Router();
 
-router.get("", async (_, res) => {
-  const bugs = await resolveWithDelay(bugsDao.getAll, 200, 700);
+// Test endpoint, takes 0.2-0.7s to complete
+// 80% of the time returns data
+// 10% - fails (500)
+// 10% - 404
+router.get(
+  "",
+  validateRequestQuery(
+    z.object({
+      alwaysFail: zodStringToBoolSchema.optional(),
+      always404: zodStringToBoolSchema.optional(),
+    })
+  ),
+  async (req, res, next) => {
+    const bugs = await resolveWithDelay(bugsDao.getAll, 200, 700);
 
-  if (8 < Math.floor(Math.random() * 10)) {
-    res.sendProblem(problem404("whatever you were looking for was not found"));
-    return;
+    if (req.query.always404 || Math.floor(Math.random() * 10) == 9) {
+      return res.sendProblem(
+        problem404("whatever you were looking for was not found")
+      );
+    }
+
+    if (req.query.alwaysFail || Math.floor(Math.random() * 10) == 8) {
+      return next(new Error("scripted error"));
+    }
+
+    res.json(bugs);
   }
-
-  res.json(bugs);
-});
+);
 
 router.get("/:id", (req, res) => {
   const bug = bugsDao.get(Number(req.params.id));

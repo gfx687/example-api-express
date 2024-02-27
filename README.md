@@ -12,6 +12,7 @@ Does not contain any functionality. Project exists as a reference when creating 
   - [Environment Variables Validation](#environment-variables-validation)
   - [User Input Validation](#user-input-validation)
   - [Logging](#logging)
+  - [Metrics](#metrics)
 - [Caveats, Known Issues, and Limitations](#caveats-known-issues-and-limitations)
   - [Async Error Handling in Express](#async-error-handling-in-express)
   - [Swagger](#swagger)
@@ -139,6 +140,15 @@ router.get("", (req, res) => {
   res.json(bugs);
 });
 ```
+
+### Metrics
+
+This project exposes an endpoint (`/metrics`) with metric data in Prometheus format.
+
+Metrics added:
+1) node process metrics that are added by Prometheus client
+2) `http_request_duration_seconds` - information about HTTP requests handled (count, duration, path, etc)
+3) `unhandled_exceptions_total` - total number of exceptions that reached global exception handling middleware
 
 ## Caveats, Known Issues, and Limitations
 

@@ -3,6 +3,7 @@ import pino from "pino";
 
 const envSchema = z.object({
   APP_VERSION: z.string().default("0.1.0"),
+  PORT: z.number().default(3001),
 });
 
 const envParse = envSchema.safeParse(process.env);
