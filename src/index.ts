@@ -6,18 +6,20 @@ import {
   problem500,
 } from "./problem-details";
 import logger, { addLogger, logHttp } from "./logger";
-import { exceptionsCounter, getMetricsMiddleware } from "./metrics";
+import { exceptionsCounter, httpMetricsMiddleware } from "./metrics";
 import { ENV } from "./env";
+import requestID from "./express-request-id";
 
 const app = express();
 
+app.use(express.json());
+app.use(requestID());
 app.use(addLogger);
 app.use(logHttp);
-app.use(express.json());
 
 configureProblemDetails(app);
 
-app.use(getMetricsMiddleware());
+app.use(httpMetricsMiddleware);
 
 app.use("/api/bugs", bugsRouter);
 

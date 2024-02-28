@@ -5,15 +5,13 @@ const register = prometheus.register;
 
 prometheus.collectDefaultMetrics({ register });
 
-export function getMetricsMiddleware() {
-  return promBundle({
-    includeMethod: true,
-    includePath: true,
-    includeUp: true,
-  });
-}
+export const httpMetricsMiddleware = promBundle({
+  includeMethod: true,
+  includePath: true,
+  includeUp: true,
+});
 
 export const exceptionsCounter = new prometheus.Counter({
-  name: "unhandled_exceptions_total",
+  name: "unhandled_exception_count",
   help: "count of exceptions that were handled by global exception handler",
 });

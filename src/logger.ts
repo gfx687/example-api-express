@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 import { Request, Response, NextFunction } from "express";
 import pino from "pino";
 import { ENV } from "./env";
@@ -24,7 +23,7 @@ declare global {
 }
 
 export function addLogger(req: Request, _res: Response, next: NextFunction) {
-  req.log = logger.child({ "indexed.traceId": randomUUID() });
+  req.log = logger.child({ "indexed.traceId": req.id });
 
   next();
 }

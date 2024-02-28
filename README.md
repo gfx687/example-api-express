@@ -13,6 +13,7 @@ Does not contain any functionality. Project exists as a reference when creating 
   - [User Input Validation](#user-input-validation)
   - [Logging](#logging)
   - [Metrics](#metrics)
+  - [X-Request-ID Header Propagation](#x-request-id-header-propagation)
 - [Caveats, Known Issues, and Limitations](#caveats-known-issues-and-limitations)
   - [Async Error Handling in Express](#async-error-handling-in-express)
   - [Swagger](#swagger)
@@ -149,6 +150,12 @@ Metrics added:
 1) node process metrics that are added by Prometheus client
 2) `http_request_duration_seconds` - information about HTTP requests handled (count, duration, path, etc)
 3) `unhandled_exceptions_total` - total number of exceptions that reached global exception handling middleware
+
+### X-Request-ID Header Propagation
+
+`X-Request-ID` header is read from incoming HTTP requests (or generated if not found) and added to the `express.Request.id` field.
+
+Main use-case is including this ID in logs for easy search. This will be done automatically as long as you use `express.Request.log` logger (read more in [Logging](#logging) section).
 
 ## Caveats, Known Issues, and Limitations
 
