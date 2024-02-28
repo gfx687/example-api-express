@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/gfx687/example-api-express#readme",
   "dependencies": {
+    "@gfx687/express-request-id": "^1.0.2",
     "express": "^4.18.2",
     "express-prom-bundle": "^7.0.0",
     "pino": "^8.19.0",

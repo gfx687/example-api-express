@@ -8,7 +8,7 @@ import {
 import logger, { addLogger, logHttp } from "./logger";
 import { exceptionsCounter, httpMetricsMiddleware } from "./metrics";
 import { ENV } from "./env";
-import requestID from "./express-request-id";
+import { requestID } from "@gfx687/express-request-id";
 
 const app = express();
 
