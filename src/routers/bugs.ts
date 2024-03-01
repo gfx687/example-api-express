@@ -1,14 +1,13 @@
 import express from "express";
-import {
-  resolveWithDelay,
-  validateRequestBody,
-  validateRequestQuery,
-  zodStringToBoolSchema,
-} from "../helpers";
+import { resolveWithDelay, zodStringToBoolSchema } from "../helpers";
 import * as bugsDao from "../models/bugs-dao";
 import { bugUpdateSchema, newBugSchema } from "../models/bugs-types";
 import { problem404 } from "../problem-details";
 import { z } from "zod";
+import {
+  validateRequestBody,
+  withParsedRequestQuery,
+} from "@gfx687/express-zod-middleware";
 
 const router = express.Router();
 
@@ -18,7 +17,7 @@ const router = express.Router();
 // 10% - 404
 router.get(
   "",
-  validateRequestQuery(
+  withParsedRequestQuery(
     z.object({
       alwaysFail: zodStringToBoolSchema.optional(),
       always404: zodStringToBoolSchema.optional(),

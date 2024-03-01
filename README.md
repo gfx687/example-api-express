@@ -79,46 +79,9 @@ console.log(ENV.APP_VERSION);
 
 ### User Input Validation
 
-Project uses [zod](https://github.com/colinhacks/zod) for user input validation.
+Project uses [zod](https://github.com/colinhacks/zod) for user input validation. As well as [express-zod-middleware](https://www.npmjs.com/package/@gfx687/express-zod-middleware) to provide boilerplate functions for validation.
 
-A middleware `validateRequestBody` is added to for plugging in in your request handlers.
-
-If validation fails middleware will return `ProblemDetails` object with list of issues and 422 HTTP Status Code.
-
-Example of usage:
-
-```typescript
-// validateRequestBody accepts zod schema as a parameter
-router.post("", validateRequestBody(newBugSchema), (req, res) => {
-  // req.body's type is NewBug, derived from the validation schema
-  const newBug = bugsDao.create(req.body);
-  res.status(201).send(newBug);
-});
-```
-
-Example of error:
-
-```
-HTTP/1.1 422 Unprocessable Entity
-Content-Type: application/problem+json; charset=utf-8
-
-{
-  "type": "ValidationError",
-  "title": "Your request is not valid.",
-  "detail": "Input is invalid, see 'errors' for more information.",
-  "status": 422,
-  "errors": [
-    {
-      "detail": "Required",
-      "pointer": "description"
-    },
-    {
-      "detail": "Required",
-      "pointer": "priority"
-    }
-  ]
-}
-```
+See example of using validation middlewares in the [express-zod-middleware's REAME](https://www.npmjs.com/package/@gfx687/express-zod-middleware#example).
 
 ### Logging
 
