@@ -128,28 +128,11 @@ Main use-case is including this ID in logs for easy search. This will be done au
 
 If an async function in your handler throws an error without the error being properly handled then entire Express app will panic.
 
-To make sure that errors are handled properly you need to wrap the await in `try / catch` and call `next(err)`.
+For that reason a package [async-express-errors](https://www.npmjs.com/package/express-async-errors) was added. There is no special way to use it. It simply overrides some express internals and makes thrown errors be handled by next middleware.
 
-Example of async error endpoint:
-
+Make sure that you have it imported in the `src/index.ts` file so it can register the patch:
 ```typescript
-router.get("/api/error/async", async (_, __, next) => {
-  async function DoAsync() {
-    return new Promise((_, reject) => {
-      setTimeout(() => {
-        reject(new Error("Async Fn error!"));
-      }, 3000);
-    });
-  }
-
-  // try-catch and next(err) are important
-  // without it error will not be handled properly
-  try {
-    await DoAsync();
-  } catch (err) {
-    next(err);
-  }
-});
+import "express-async-errors";
 ```
 
 ### Swagger
