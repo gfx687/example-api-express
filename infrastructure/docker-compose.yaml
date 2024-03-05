@@ -12,6 +12,7 @@ services:
 
   grafana:
     image: grafana/grafana
+    container_name: example-api-express-grafana
     environment:
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
       - GF_AUTH_ANONYMOUS_ENABLED=true
@@ -22,3 +23,23 @@ services:
       - "3000:3000"
     network_mode: "host"
 
+  promtail:
+    image: grafana/promtail:2.9.2
+    container_name: example-api-express-promtail
+    volumes:
+      - ./promtail.yaml:/etc/promtail/config.yaml:ro
+      - ./../logs:/logs
+    command: -config.file=/etc/promtail/config.yaml
+    network_mode: "host"
+
+  loki:
+    image: grafana/loki:2.9.2
+    container_name: example-api-express-loki
+    command: "-config.file=/etc/loki/config.yaml -target=all"
+    ports:
+      - 3100:3100
+      # - 7946
+      # - 9095
+    volumes:
+      - ./loki.yaml:/etc/loki/config.yaml
+    network_mode: "host"

@@ -20,9 +20,7 @@ Does not contain any functionality. Project exists as a reference when creating 
 
 ## Running Locally
 
-As is noted above project by itself does not do anything. It is a template / reference.
-
-You can start the server with `npm run dev` and poke the API (see `src/routers/bugs.ts` for endpoints).
+See [infrastructure/README.md](infrastructure/README.md)
 
 ## Features
 

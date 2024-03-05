@@ -33,7 +33,7 @@ router.get(
     }
 
     if (req.query.alwaysFail || Math.floor(Math.random() * 10) == 8) {
-      return next(new Error("scripted error"));
+      throw new Error("scripted error");
     }
 
     res.json(bugs);
