@@ -40,8 +40,12 @@ router.get(
   }
 );
 
-router.get("/:id", (req, res) => {
-  const bug = bugsDao.get(Number(req.params.id));
+router.get("/:id", async (req, res) => {
+  const bug = await resolveWithDelay(
+    () => bugsDao.get(Number(req.params.id)),
+    5000,
+    7000
+  );
   if (!bug) {
     res.sendProblem(problem404(`Bug with id='${req.params.id}' not found`));
     return;

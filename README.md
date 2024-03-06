@@ -14,6 +14,7 @@ Does not contain any functionality. Project exists as a reference when creating 
   - [Logging](#logging)
   - [Metrics](#metrics)
   - [X-Request-ID Header Propagation](#x-request-id-header-propagation)
+  - [Graceful Shutdown](#graceful-shutdown)
 - [Caveats, Known Issues, and Limitations](#caveats-known-issues-and-limitations)
   - [Async Error Handling in Express](#async-error-handling-in-express)
   - [Swagger](#swagger)
@@ -108,15 +109,22 @@ router.get("", (req, res) => {
 This project exposes an endpoint (`/metrics`) with metric data in Prometheus format.
 
 Metrics added:
-1) node process metrics that are added by Prometheus client
-2) `http_request_duration_seconds` - information about HTTP requests handled (count, duration, path, etc)
-3) `unhandled_exceptions_total` - total number of exceptions that reached global exception handling middleware
+
+1. node process metrics that are added by Prometheus client
+2. `http_request_duration_seconds` - information about HTTP requests handled (count, duration, path, etc)
+3. `unhandled_exceptions_total` - total number of exceptions that reached global exception handling middleware
 
 ### X-Request-ID Header Propagation
 
 `X-Request-ID` header is read from incoming HTTP requests (or generated if not found) and added to the `express.Request.id` field.
 
 Main use-case is including this ID in logs for easy search. This will be done automatically as long as you use `express.Request.log` logger (read more in [Logging](#logging) section).
+
+### Graceful Shutdown
+
+Library [stoppable](https://www.npmjs.com/package/stoppable) is used to handle Keep-Alive connections. The library allows you to specify a timeout after which server will be forcefully closed.
+
+Normally, when you call `server.close()` on, for example, `process.on('SIGTERM', ...)`, server will stop receiving new connections while finishing handling old ones, as you would expect. The problem is with Keep-Alive connections, which reuse the same connection to make new requests. If any of those connections exist, the server will potentially keep working indefinitely after calling `server.close()` until those clients disconnect.
 
 ## Caveats, Known Issues, and Limitations
 
@@ -129,6 +137,7 @@ If an async function in your handler throws an error without the error being pro
 For that reason a package [async-express-errors](https://www.npmjs.com/package/express-async-errors) was added. There is no special way to use it. It simply overrides some express internals and makes thrown errors be handled by next middleware.
 
 Make sure that you have it imported in the `src/index.ts` file so it can register the patch:
+
 ```typescript
 import "express-async-errors";
 ```

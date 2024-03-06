@@ -10,6 +10,7 @@ import logger, { addLogger, logHttp } from "./logger";
 import { exceptionsCounter, httpMetricsMiddleware } from "./metrics";
 import { ENV } from "./env";
 import { requestID } from "@gfx687/express-request-id";
+import stoppable from "stoppable";
 
 const app = express();
 
@@ -39,6 +40,12 @@ app.use((err: Error, req: Request, res: Response, _: NextFunction) => {
   res.sendProblem(problem500);
 });
 
-app.listen(ENV.PORT, () => {
-  logger.info(`Started. Listening on port ${ENV.PORT}`);
-});
+const server = stoppable(
+  app.listen(ENV.PORT, () => {
+    logger.info(`Started. Listening on port ${ENV.PORT}`);
+  }),
+  10000
+);
+
+process.on("SIGTERM", server.stop);
+process.on("SIGINT", server.stop);
