@@ -1,13 +1,18 @@
 import express from "express";
-import { resolveWithDelay, zodStringToBoolSchema } from "../helpers";
+import { resolveWithDelay } from "../helpers";
 import * as bugsDao from "../models/bugs-dao";
 import { bugUpdateSchema, newBugSchema } from "../models/bugs-types";
 import { problem404 } from "../problem-details";
 import { z } from "zod";
 import {
   validateRequestBody,
+  withParsedRequest,
+  withParsedRequestParams,
   withParsedRequestQuery,
+  zodStringToBoolSchema,
+  zodStringToNumberSchema,
 } from "@gfx687/express-zod-middleware";
+import { db } from "../models/database";
 
 const router = express.Router();
 
@@ -23,7 +28,7 @@ router.get(
       always404: zodStringToBoolSchema.optional(),
     })
   ),
-  async (req, res, next) => {
+  async (req, res, _next) => {
     const bugs = await resolveWithDelay(bugsDao.getAll, 200, 700);
 
     if (req.query.always404 || Math.floor(Math.random() * 10) == 9) {
@@ -40,44 +45,70 @@ router.get(
   }
 );
 
-router.get("/:id", async (req, res) => {
-  const bug = await resolveWithDelay(
-    () => bugsDao.get(Number(req.params.id)),
-    5000,
-    7000
-  );
-  if (!bug) {
-    res.sendProblem(problem404(`Bug with id='${req.params.id}' not found`));
-    return;
+router.get(
+  "/:id",
+  withParsedRequestParams(
+    z.object({
+      id: zodStringToNumberSchema,
+    })
+  ),
+  async (req, res) => {
+    const bug = await resolveWithDelay(
+      () =>
+        db
+          .selectFrom("bugs")
+          .where("id", "=", req.params.id)
+          .selectAll()
+          .executeTakeFirst(),
+      5000,
+      7000
+    );
+
+    if (!bug) {
+      res.sendProblem(problem404(`Bug with id='${req.params.id}' not found`));
+      return;
+    }
+
+    res.json(bug);
   }
+);
 
-  res.json(bug);
-});
-
-router.post("", validateRequestBody(newBugSchema), (req, res) => {
-  const newBug = bugsDao.create(req.body);
+router.post("", validateRequestBody(newBugSchema), async (req, res) => {
+  const newBug = await bugsDao.create({ ...req.body, status: "New" });
   res.status(201).send(newBug);
 });
 
-router.put("/:id", validateRequestBody(bugUpdateSchema), (req, res) => {
-  const bug = bugsDao.update(Number(req.params.id), req.body);
-  if (!bug) {
-    res.sendProblem(problem404(`Bug with id='${req.params.id}' not found`));
-    return;
+router.put(
+  "/:id",
+  withParsedRequest({
+    params: z.object({ id: zodStringToNumberSchema }),
+    body: bugUpdateSchema,
+  }),
+  async (req, res) => {
+    const bug = await bugsDao.update(req.params.id, {
+      ...req.body,
+      updatedAt: new Date(),
+    });
+    if (!bug) {
+      res.sendProblem(problem404(`Bug with id='${req.params.id}' not found`));
+      return;
+    }
+
+    res.json(bug);
   }
+);
 
-  res.json(bug);
-});
-
-router.delete("/:id", (req, res) => {
-  const bug = bugsDao.get(Number(req.params.id));
-  if (!bug) {
-    res.sendProblem(problem404(`Bug with id='${req.params.id}' not found`));
-    return;
+router.delete(
+  "/:id",
+  withParsedRequestParams(z.object({ id: zodStringToNumberSchema })),
+  async (req, res) => {
+    const deleteResult = await bugsDao.deleteBug(Number(req.params.id));
+    if (deleteResult.numDeletedRows == BigInt(0)) {
+      res.sendProblem(problem404(`Bug with id='${req.params.id}' not found`));
+      return;
+    }
+    res.status(204).send();
   }
-
-  bugsDao.deleteBug(Number(req.params.id));
-  res.status(204).send();
-});
+);
 
 export default router;

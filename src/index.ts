@@ -1,3 +1,4 @@
+// @ts-ignore
 import "express-async-errors";
 import express, { Request, Response, NextFunction } from "express";
 import bugsRouter from "./routers/bugs";
@@ -11,41 +12,52 @@ import { exceptionsCounter, httpMetricsMiddleware } from "./metrics";
 import { ENV } from "./env";
 import { requestID } from "@gfx687/express-request-id";
 import stoppable from "stoppable";
+import { migrateOrPanic } from "./migrator";
 
-const app = express();
+const cleanup = () => {
+  // await db.destroy(); // TODO: cleanup DB connection?
+  logger.info("Server closed gracefully");
+  process.exit(0);
+};
 
-app.use(express.json());
-app.use(requestID());
-app.use(addLogger);
-app.use(logHttp);
+(async () => {
+  await migrateOrPanic();
 
-configureProblemDetails(app);
+  const app = express();
 
-app.use(httpMetricsMiddleware);
+  app.use(express.json());
+  app.use(requestID());
+  app.use(addLogger);
+  app.use(logHttp);
 
-app.use("/api/bugs", bugsRouter);
+  configureProblemDetails(app);
 
-app.use((req, res) => {
-  res.sendProblem(problem404(`Path or resource '${req.url}' not found.`));
-});
+  app.use(httpMetricsMiddleware);
 
-app.use((err: Error, req: Request, res: Response, _: NextFunction) => {
-  if (req.log) {
-    req.log.error(err);
-  } else {
-    logger.error(err);
-  }
+  app.use("/api/bugs", bugsRouter);
 
-  exceptionsCounter.inc();
-  res.sendProblem(problem500);
-});
+  app.use((req, res) => {
+    res.sendProblem(problem404(`Path or resource '${req.url}' not found.`));
+  });
 
-const server = stoppable(
-  app.listen(ENV.PORT, () => {
-    logger.info(`Started. Listening on port ${ENV.PORT}`);
-  }),
-  10000
-);
+  app.use((err: Error, req: Request, res: Response, _: NextFunction) => {
+    if (req.log) {
+      req.log.error(err);
+    } else {
+      logger.error(err);
+    }
 
-process.on("SIGTERM", server.stop);
-process.on("SIGINT", server.stop);
+    exceptionsCounter.inc();
+    res.sendProblem(problem500);
+  });
+
+  const server = stoppable(
+    app.listen(ENV.PORT, () => {
+      logger.info(`Started. Listening on port ${ENV.PORT}`);
+    }),
+    10000
+  );
+
+  process.on("SIGTERM", (_) => server.stop(cleanup));
+  process.on("SIGINT", (_) => server.stop(cleanup));
+})();

@@ -1,10 +1,3 @@
-import z from "zod";
-
-export const zodStringToBoolSchema = z
-  .string()
-  .toLowerCase()
-  .transform((x) => x === "true" || x === "1");
-
 export function resolveWithDelay<T>(
   dataFn: () => T,
   delayMsLow: number,
