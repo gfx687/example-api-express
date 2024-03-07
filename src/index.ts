@@ -13,12 +13,8 @@ import { ENV } from "./env";
 import { requestID } from "@gfx687/express-request-id";
 import stoppable from "stoppable";
 import { migrateOrPanic } from "./migrator";
-
-const cleanup = () => {
-  // await db.destroy(); // TODO: cleanup DB connection?
-  logger.info("Server closed gracefully");
-  process.exit(0);
-};
+import { db } from "./models/database";
+import { promisify } from "util";
 
 (async () => {
   await migrateOrPanic();
@@ -58,6 +54,19 @@ const cleanup = () => {
     10000
   );
 
-  process.on("SIGTERM", (_) => server.stop(cleanup));
-  process.on("SIGINT", (_) => server.stop(cleanup));
+  const cleanup = async () => {
+    try {
+      await promisify(server.stop).bind(server)();
+      await db.destroy();
+      process.exit(0);
+    } catch (err) {
+      logger.error(
+        { err },
+        "An error occurred while doing cleanup before server close"
+      );
+    }
+  };
+
+  process.on("SIGTERM", cleanup);
+  process.on("SIGINT", cleanup);
 })();
