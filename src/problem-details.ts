@@ -38,7 +38,7 @@ export function problemValidation(
   errors: { detail: string; pointer: string }[]
 ): ProblemDetails {
   return {
-    type: "ValidationError",
+    type: "https://datatracker.ietf.org/doc/html/rfc9110#name-422-unprocessable-content",
     title: "Your request is not valid.",
     detail: "Input is invalid, see 'errors' for more information.",
     status: 422,

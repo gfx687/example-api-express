@@ -15,6 +15,7 @@ Does not contain any functionality. Project exists as a reference when creating 
   - [Metrics](#metrics)
   - [X-Request-ID Header Propagation](#x-request-id-header-propagation)
   - [Graceful Shutdown](#graceful-shutdown)
+  - [Healthchecks](#healthchecks)
   - [PostgreSQL with Kysely Client](#postgresql-with-kysely-client)
 - [Caveats, Known Issues, and Limitations](#caveats-known-issues-and-limitations)
   - [Async Error Handling in Express](#async-error-handling-in-express)
@@ -123,20 +124,29 @@ Main use-case is including this ID in logs for easy search. This will be done au
 
 ### Graceful Shutdown
 
-Library [stoppable](https://www.npmjs.com/package/stoppable) is used to handle Keep-Alive connections. The library allows you to specify a timeout after which server will be forcefully closed.
+Library [terminus](https://github.com/godaddy/terminus) is used to handle Keep-Alive connection and to trigger cleanup functions.
 
 Normally, when you call `server.close()` on, for example, `process.on('SIGTERM', ...)`, server will stop receiving new connections while finishing handling old ones, as you would expect. The problem is with Keep-Alive connections, which reuse the same connection to make new requests. If any of those connections exist, the server will potentially keep working indefinitely after calling `server.close()` until those clients disconnect.
+
+With `terminus` you specify the `timeout` for graceful shutdown, after which all the connections are forcefully severed.
+
+### Healthchecks
+
+Library [terminus](https://github.com/godaddy/terminus) is used to conveniently register `/health` endpoint.
+
+This example project includes one simple check - if database can be connected to, then check passes.
 
 ### PostgreSQL with Kysely Client
 
 Project uses [Kysely](https://kysely.dev/docs/intro) as a PostgreSQL client and to handle migrations.
 
 How to create and run migrations:
-1) Create new migration with `npm run new-migration`
-2) Rename newly created file to anything you want.  
-    Keep the timestamp prefix, it ensures consistent ordering my migrator
-3) Write the migration code
-4) Nothing else is needed. Migrations are brought up to date with every application run.
+
+1. Create new migration with `npm run new-migration`
+2. Rename newly created file to anything you want.  
+   Keep the timestamp prefix, it ensures consistent ordering my migrator
+3. Write the migration code
+4. Nothing else is needed. Migrations are brought up to date with every application run.
 
 ## Caveats, Known Issues, and Limitations
 

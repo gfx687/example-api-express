@@ -1,3 +1,4 @@
+import http from "http";
 // @ts-ignore
 import "express-async-errors";
 import express, { Request, Response, NextFunction } from "express";
@@ -11,10 +12,20 @@ import logger, { addLogger, logHttp } from "./logger";
 import { exceptionsCounter, httpMetricsMiddleware } from "./metrics";
 import { ENV } from "./env";
 import { requestID } from "@gfx687/express-request-id";
-import stoppable from "stoppable";
+import { createTerminus, HealthCheck } from "@godaddy/terminus";
 import { migrateOrPanic } from "./migrator";
 import { db } from "./models/database";
-import { promisify } from "util";
+import { sql } from "kysely";
+
+const cleanup = async () => {
+  await db.destroy();
+};
+
+const onHealthCheck: HealthCheck = async (_) => {
+  // throws if cannot connect to database
+  await sql`select 1`.execute(db);
+  return Promise.resolve();
+};
 
 (async () => {
   await migrateOrPanic();
@@ -47,26 +58,17 @@ import { promisify } from "util";
     res.sendProblem(problem500);
   });
 
-  const server = stoppable(
-    app.listen(ENV.PORT, () => {
-      logger.info(`Started. Listening on port ${ENV.PORT}`);
-    }),
-    10000
-  );
+  const server = http.createServer(app);
 
-  const cleanup = async () => {
-    try {
-      await promisify(server.stop).bind(server)();
-      await db.destroy();
-      process.exit(0);
-    } catch (err) {
-      logger.error(
-        { err },
-        "An error occurred while doing cleanup before server close"
-      );
-    }
-  };
+  createTerminus(server, {
+    timeout: 10000,
+    signals: ["SIGTERM", "SIGINT"],
+    logger: (msg, err) => logger.error({ err, package: "terminus" }, msg),
+    onSignal: cleanup,
+    healthChecks: { "/health": onHealthCheck },
+  });
 
-  process.on("SIGTERM", cleanup);
-  process.on("SIGINT", cleanup);
+  server.listen(ENV.PORT, () => {
+    logger.info(`Started. Listening on port ${ENV.PORT}`);
+  });
 })();
