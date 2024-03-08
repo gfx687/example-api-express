@@ -29,6 +29,12 @@ export function addLogger(req: Request, _res: Response, next: NextFunction) {
 }
 
 export function logHttp(req: Request, res: Response, next: NextFunction) {
+  const url = req.baseUrl + req.path;
+
+  if (url == "/health" || url == "/metrics") {
+    return next();
+  }
+
   const startedAt = process.hrtime();
 
   onFinished(res, () => {
@@ -38,9 +44,9 @@ export function logHttp(req: Request, res: Response, next: NextFunction) {
       {
         statusCode: res.statusCode,
         method: req.method,
-        url: req.originalUrl,
+        url: url,
       },
-      `HTTP In-Response ${req.method} ${req.originalUrl} responded with ${res.statusCode} in ${elapsedMs} ms`
+      `HTTP In-Response ${req.method} ${url} responded with ${res.statusCode} in ${elapsedMs} ms`
     );
   });
 
