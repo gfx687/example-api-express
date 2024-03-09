@@ -8,7 +8,10 @@ import logger from "./logger";
  * Migrate to latest migration or exit entire app if failed
  */
 export async function migrateOrPanic() {
-  const log = logger.child({ traceId: crypto.randomUUID() });
+  const log = logger.child({
+    source: "migrator",
+    traceId: crypto.randomUUID(),
+  });
 
   const migrator = new Migrator({
     db: db,

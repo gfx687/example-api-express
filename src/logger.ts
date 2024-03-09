@@ -8,7 +8,7 @@ const logger = pino({
     level: (label, _number) => ({ level: label }), // loglevel as a string instead of a number
     bindings: (bindings) => ({
       ...bindings,
-      appname: "typescript-sandbox",
+      appname: "example-api-express",
       version: ENV.APP_VERSION,
     }),
   },

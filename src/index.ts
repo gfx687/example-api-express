@@ -63,7 +63,7 @@ const onHealthCheck: HealthCheck = async (_) => {
   createTerminus(server, {
     timeout: 10000,
     signals: ["SIGTERM", "SIGINT"],
-    logger: (msg, err) => logger.error({ err, package: "terminus" }, msg),
+    logger: (msg, err) => logger.error({ err, source: "terminus" }, msg),
     onSignal: cleanup,
     healthChecks: { "/health": onHealthCheck },
   });

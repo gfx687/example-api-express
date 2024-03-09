@@ -1,5 +1,5 @@
+import { Bug, BugUpdate, NewBug } from "./bugs-types";
 import { db } from "./database";
-import { Bug, BugUpdate, NewBug } from "./database-types";
 
 export async function getAll(): Promise<Bug[]> {
   return db.selectFrom("bugs").selectAll().execute();

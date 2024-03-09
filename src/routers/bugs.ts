@@ -1,5 +1,4 @@
 import express from "express";
-import { resolveWithDelay } from "../helpers";
 import * as bugsDao from "../models/bugs-dao";
 import { bugUpdateSchema, newBugSchema } from "../models/bugs-types";
 import { problem404 } from "../problem-details";
@@ -112,3 +111,19 @@ router.delete(
 );
 
 export default router;
+
+function resolveWithDelay<T>(
+  dataFn: () => T,
+  delayMsLow: number,
+  delayMsHigh?: number
+): Promise<T> {
+  delayMsHigh = delayMsHigh ?? delayMsLow;
+  const delayMs =
+    Math.floor(Math.random() * (delayMsHigh - delayMsLow + 1)) + delayMsLow;
+
+  return new Promise<T>((resolve, _reject) => {
+    setTimeout(() => {
+      resolve(dataFn());
+    }, delayMs);
+  });
+}
