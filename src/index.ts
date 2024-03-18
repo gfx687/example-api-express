@@ -1,5 +1,4 @@
 import http from "http";
-// @ts-ignore
 import "express-async-errors";
 import express, { Request, Response, NextFunction } from "express";
 import bugsRouter from "./routers/bugs";

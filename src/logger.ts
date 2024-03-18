@@ -23,6 +23,8 @@ declare global {
 }
 
 export function addLogger(req: Request, _res: Response, next: NextFunction) {
+  // if app crashes here then you forgot to import @gfx687/express-request-id
+  // package in the project. It adds express.Request.id field
   req.log = logger.child({ traceId: req.id });
 
   next();

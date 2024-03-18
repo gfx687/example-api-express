@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "npx nodemon src/index.ts",
     "dev:log-file": "mkdir -p logs & npx nodemon -q src/index.ts 2>&1 | tee logs/$(date +\"%Y-%m-%d-%M-%S\").log",
+    "lint": "npx eslint src/**",
     "new-migration": "sh scripts/new-migration.bash",
     "infra:up": "docker compose -f infrastructure/docker-compose.yaml up -d",
     "infra:down": "docker compose -f infrastructure/docker-compose.yaml down"
@@ -41,9 +42,9 @@
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",
     "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
     "nodemon": "^3.1.0",
     "prettier": "3.2.5",
-    "tslint-config-prettier": "^1.18.0",
     "typescript": "^5.3.3"
   }
 }

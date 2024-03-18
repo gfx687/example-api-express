@@ -59,8 +59,7 @@ Project introduces:
    router.put("/:id", (req, res) => {
      const bug = bugsDao.update(Number(req.params.id), req.body);
      if (!bug) {
-       res.sendProblem(problem404(`Bug with id='${req.params.id}' not found`));
-       return;
+       return res.sendProblem(problem404(`Bug with id='${req.params.id}' not found`));
      }
      res.json(bug);
    });
@@ -156,7 +155,7 @@ How to create and run migrations:
 
 If an async function in your handler throws an error without the error being properly handled then entire Express app will panic.
 
-For that reason a package [async-express-errors](https://www.npmjs.com/package/express-async-errors) was added. There is no special way to use it. It simply overrides some express internals and makes thrown errors be handled by next middleware.
+For that reason package [async-express-errors](https://www.npmjs.com/package/express-async-errors) was added. There is no special way to use it. It simply overrides some express internals and makes thrown errors be handled by next middleware.
 
 Make sure that you have it imported in the `src/index.ts` file so it can register the patch:
 
